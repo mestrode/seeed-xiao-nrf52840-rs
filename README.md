@@ -119,7 +119,13 @@ The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used w
 ### probe-rs
 `probe-rs` you'll need an external SWD/JTAG Programmer. Not supported by the bootloader.
 
+`cargo install --locked probe-rs-tools`
+
 * (https://probe.rs)
+
+## elf2uf2 converter
+
+`cargo install --locked elf2uf2-rs`
 
 ## cargo hf2 subcommand
 `cargo-hf2` provides a cargo subcommand for requesting USB devices, supporting acceptance of UF2 files, then connecting and uploading.
