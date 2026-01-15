@@ -16,8 +16,26 @@ The compiler must utilize the command set of the specific chip on which the code
 
 ## Hardware Abstraction Layer (HAL)
 
-## Memory Map
+## Peripheral Access Crates (PACs)
+
+## SVD
+
+## Linker Configuration / Memory Map
 The Bootloader and the SoftDevice needs to be concidered by the linker
+nrf52840: 1 MB FLASH (0x100000), 256 KB RAM (0x40000)
+SoftDevice S140 v7.3.0: 160 KB FLASH (0x27000), ~24 KB RAM
+Bootloader: ? FLASH, ? RAM
+User Code: RAM starting at `0xFA00`
+```
+MEMORY
+{
+  /* NOTE 1 K = 1 KiBi = 1024 bytes */
+  FLASH : ORIGIN = 0x00000000, LENGTH = 1024K
+  RAM : ORIGIN = 0x20000000, LENGTH = 256K
+}
+
+INCLUDE "nrf52840.ld"
+```
 
 # Programming
 ## Programming Via SWD-Pins (not used here)
