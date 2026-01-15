@@ -127,6 +127,14 @@ The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used w
 
 `cargo install --locked elf2uf2-rs`
 
+Make sure your .cargo/config.toml contains the following:
+```toml
+[target.thumbv6m-none-eabi]
+runner = "elf2uf2-rs -d"
+```
+
+* [rp-rs/rp-hal-boards](https://github.com/rp-rs/rp-hal-boards/tree/5135e3dafe3e69b112e6d2d72cfb1856a7679b82)
+
 ## cargo hf2 subcommand
 `cargo-hf2` provides a cargo subcommand for requesting USB devices, supporting acceptance of UF2 files, then connecting and uploading.
 
