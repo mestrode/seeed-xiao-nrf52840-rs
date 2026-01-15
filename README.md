@@ -121,7 +121,15 @@ The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used w
 
 `cargo install --locked probe-rs-tools`
 
+Make sure your .cargo/config.toml contains the following: (tbc)
+```toml
+[target.thumbv6m-none-eabi]
+runner = "probe-rs run --chip NRF52840"
+```
+
 * (https://probe.rs)
+* [rp-rs/rp-hal-boards](https://github.com/rp-rs/rp-hal-boards/tree/5135e3dafe3e69b112e6d2d72cfb1856a7679b82)
+
 
 ## elf2uf2 converter
 
