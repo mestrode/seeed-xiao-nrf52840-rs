@@ -121,6 +121,11 @@ The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used w
 
 * (https://probe.rs)
 
+## cargo hf2 subcommand
+`cargo-hf2` provides a cargo subcommand for requesting USB devices, supporting acceptance of UF2 files, then connecting and uploading.
+
+* [jacobrosenthal/hf2-rs](https://github.com/jacobrosenthal/hf2-rs) [cargo-hf2 on crates.io](https://crates.io/crates/cargo-hf2)
+
 ## Programming Via Bootloader
 The board utilizes a modified bootloader [0hotpotman0/Adafruit_nRF52_Bootloader](https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader).  
 It's a Fork of the UF2 Bootloader from Adafruit [adafruit/Adafruit_nRF52_Bootloader](https://github.com/adafruit/Adafruit_nRF52_Bootloader).  
