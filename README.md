@@ -22,30 +22,37 @@ The compiler must utilize the command set of the specific chip on which the code
 
 ## Linker Configuration / Memory Map
 The Bootloader and the SoftDevice needs to be concidered by the linker
+
 ### Flash
 nrf52840: 1 MB FLASH (0x00000000 - 0x00100000)
-Bootloader: ? FLASH (0x00000000 - ?)
-SoftDevice S140 v7.3.0: 160 KB FLASH (0x27000)
-User Code:
+Bootloader: 16 kB FLASH (0x00000000 - 0x00004000) (overlapping with SoftDevice)
+MBR + SoftDevice s140 v7.3.0: 156.0 kB FLASH (0x00000000 - 0x00027000)
+User Code: Starting at 0x00027000
+
 ### RAM
 nrf52840: 256 KB RAM (0x20000000 - 0x20040000)
-SoftDevice S140 v7.3.0: Does not use RAM (~24 KB RAM !?)
-Bootloader: 0 RAM
-User Code: RAM starting at `0xFA00`
+Bootloader: 0 B RAM (inactive while usercode is running)
+SoftDevice s140 v7.3.0: 5.6 kB RAM (0x20000000 - 0x20001678)
+User Code: Starting at `0x20001678` (nach SoftDevice)
 
+### Memory Map
 ```
 MEMORY
 {
   /* NOTE 1 K = 1 KiBi = 1024 bytes */
   /* SoftDevice and Bootloader occupy the first 0x27000 bytes */
   FLASH : ORIGIN = 0x00027000, LENGTH = 1024K - 0x27000
-  RAM : ORIGIN = 0x20000000, LENGTH = 256K
+  RAM : ORIGIN = 0x20000000, LENGTH = 256K - 0x1678
 }
 
 INCLUDE "nrf52840.ld"
 ```
 
-more information about Softdevice: [https://github.com/embassy-rs/nrf-softdevice/]
+### Source
+* Offcial Documentation of SoftDevice [https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r]
+* Nordic SoftDevice Downlodes includes Release Notes [https://www.nordicsemi.com/Products/Development-software/S140/]
+* Rust Embassy binding to use SoftDevice [https://github.com/embassy-rs/nrf-softdevice/]
+* memory.x  [https://github.com/Wumpf/Seeed-nRF52840-Sense-projects/blob/main/memory.x]
 
 # Programming
 ## Programming Via SWD-Pins (not used here)
