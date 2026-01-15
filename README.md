@@ -46,7 +46,7 @@ The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used w
 
 ## Programming Via Bootloader
 The board utilizes a modified bootloader [https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader].
-It's a Fork of the UF2 Bootloader from Adafruit.
+It's a Fork of the UF2 Bootloader from Adafruit [https://github.com/adafruit/Adafruit_nRF52_Bootloader].
 You can drop UF2 files into the mass storage emulation, there is also an DFU (Direct Firmware Upload) Mode.
 
 ### Board Naming Indicates Mode
