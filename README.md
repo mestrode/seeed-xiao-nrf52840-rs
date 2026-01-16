@@ -1,11 +1,13 @@
 # seeed-xiao-nrf52840-rs
 using Rust on a Seeed Xiao NRF52840 board
 
-Note: I'm using the board without "Sense" in the name. However, it appeared that the same firmware was present on the chip.
+> [!NOTE]
+> I'm using the board without "Sense" in the name. However, it appeared that the same firmware was present on the chip.
 
 # Rust compiler
 Install rust e.g. via `rustup`, see [rust documentation](https://rust-lang.org/tools/install/)  
 `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+
 ## Target
 The compiler must utilize the command set of the specific chip on which the code is intended to run. The nRF52840 is based on the ARM Cortex-M4.
 * `rustup target add thumbv7em-none-eabihf` for nrf52840
@@ -14,22 +16,42 @@ The compiler must utilize the command set of the specific chip on which the code
   * `none` bare metal, no operating system
   * `eabihf` Embedded Application Binary Interface (EABI) with Hardware float
 
+# cargo: create rust project
+
+Either
+```
+cargo new project_name
+cd project_name
+```
+or
+```
+mkdir project_name
+cd project_name
+cargo init
+```
+Options are `--bin` (default) or `--lib`
+
 ## Linker Configuration / Memory Map
 The Bootloader and the SoftDevice needs to be concidered by the linker
 
 ### Flash
+```
 nrf52840: 1 MB FLASH (0x00000000 - 0x00100000)  
 Bootloader: 16 kB FLASH (0x00000000 - 0x00004000) (overlapping with SoftDevice)  
 MBR + SoftDevice s140 v7.3.0: 156.0 kB FLASH (0x00000000 - 0x00027000)  
 User Code: Starting at 0x00027000 (after SoftDevice)
+```
 
 ### RAM
+```
 nrf52840: 256 KB RAM (0x20000000 - 0x20040000)  
 Bootloader: 0 B RAM (inactive while usercode is running)  
 SoftDevice s140 v7.3.0: 5.6 kB RAM (0x20000000 - 0x20001678)  
 User Code: Starting at `0x20001678` (after SoftDevice)
+```
 
 ### Memory Map
+`memory.x` file, located in the project root
 ```
 MEMORY
 {
@@ -46,7 +68,8 @@ INCLUDE "nrf52840.ld"
 * [Offcial Documentation of SoftDevice S140](https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r)
 * [Nordic SoftDevice Downlodes includes Release Notes](https://www.nordicsemi.com/Products/Development-software/S140/)
 * [Rust Embassy binding to use SoftDevice](https://github.com/embassy-rs/nrf-softdevice/)
-* memory.x  [Wumpf/Seeed-nRF52840-Sense-projects](https://github.com/Wumpf/Seeed-nRF52840-Sense-projects/blob/main/memory.x)
+* memory.x [Wumpf/Seeed-nRF52840-Sense-projects](https://github.com/Wumpf/Seeed-nRF52840-Sense-projects/blob/main/memory.x)
+* memory.x [example in embassy-rs/embassy](https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/memory.x)
 
 # Write Your Firmware
 
@@ -81,7 +104,14 @@ Currently no BSC known for Seeed Xiao nrf52840. Can be created on your own.
 Name the target in `.cargo/config.toml`
 ```toml
 [build]
-target = "thumbv7em-none-eabihf"
+target = "thumbv7em-none-eabihf" # Targetplattform
+
+[target.thumbv7em-none-eabihf]
+linker = "arm-none-eabi-ld" # Linker for ARN
+rustflags = [
+    "-C" "link-arg=-Tmemory.x",  # Linker script
+    "-C" "link-arg=-nostartfiles", # no start files
+]
 ```
 
 Put the dependency to your `Cargo.toml`
@@ -92,8 +122,15 @@ nrf-hal = "0.16.0"       # HAL for nRF52840
 embedded-hal = "0.2.7"   # Trait-definition for HAL (option)
 
 ```
+Build Script `build.rs`
+```rust
+fn main () {
+    println!("cargo:rustc-link-arg=-Tmemory.x");
+    println!("cargo:rerun-if-changed=memory.x");
+}
+```
 
-Use this in your rust code
+Use this in your rust code `src/main.rs`
 ```rust
 #![no_main]
 #![no_std]
@@ -111,13 +148,22 @@ fn main() {
 }
 ```
 
+## compilen
+`cargo build --release`
+ELF-File now in `target/thumbv7em-none-eabihf/release`
 
 # Programming
 ## Programming Via SWD-Pins (not used here)
 The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used with an physical programming device (JTAG).
 
 ### probe-rs
-`probe-rs` you'll need an external SWD/JTAG Programmer. Not supported by the bootloader.
+> [!NOTE]
+> Section not verified, just various information puzzling.
+
+> [!NOTE]
+> Not supported by the UF2 bootloader on Seeed board.
+
+`probe-rs` you'll need an external SWD/JTAG Programmer.
 
 `cargo install --locked probe-rs-tools`
 
@@ -126,6 +172,9 @@ Make sure your .cargo/config.toml contains the following: (tbc)
 [target.thumbv6m-none-eabi]
 runner = "probe-rs run --chip NRF52840"
 ```
+
+may:
+`cargo flash --chip NRF52840 --release`
 
 * (https://probe.rs)
 * [rp-rs/rp-hal-boards](https://github.com/rp-rs/rp-hal-boards/tree/5135e3dafe3e69b112e6d2d72cfb1856a7679b82)
