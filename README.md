@@ -8,7 +8,7 @@ using Rust on a Seeed Xiao NRF52840 board
 Install rust e.g. via `rustup`, see [rust documentation](https://rust-lang.org/tools/install/)  
 `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 
-## Target
+## Target-Support
 The compiler must utilize the command set of the specific chip on which the code is intended to run. The nRF52840 is based on the ARM Cortex-M4.
 * `rustup target add thumbv7em-none-eabihf` for nrf52840
   * `thumb` compact version of ARM command set, optimized for micro controller
@@ -154,6 +154,7 @@ fn main() {
 ELF-File now in `target/thumbv7em-none-eabihf/release`
 
 # Programming
+
 ## Programming Via SWD-Pins (not used here)
 The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used with an physical programming device (JTAG).
 
@@ -164,7 +165,8 @@ The Board provides GND, SWDIO, SWCLK, VCC Pads on the bottom. This can be used w
 > [!NOTE]
 > Not supported by the UF2 bootloader on Seeed board.
 
-`probe-rs` you'll need an external SWD/JTAG Programmer.
+`probe-rs` you'll need an external SWD/JTAG Programmer.  
+probe-rs will support debugging.
 
 `cargo install --locked probe-rs-tools`
 
