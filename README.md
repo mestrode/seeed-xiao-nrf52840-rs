@@ -82,22 +82,23 @@ Rust Crate, based on SVD. Provides safe and typesafe access to hardware register
 
 Can be created by using `svd2rust`. However, the community has already done this for you.
 
-* (https://github.com/nrf-rs/nrf-pacs)
-* (https://crates.io/crates/nrf52840-pac)
+* [nrf-rs/nrf-pacs](https://github.com/nrf-rs/nrf-pacs)
+* [nrf52840-pac on  crates.io](https://crates.io/crates/nrf52840-pac)
 
 ## Hardware Abstraction Layer (HAL)
 Independent of platform, makes porting of SW between MCU vendors possible.
 
 Abstraction layer on top of the PAC. Provides a user-friendly API for e.g. UART, SPI, I2C. The developer is not required to work directly with the registers.
 
-* `nrf-hal` [nrf-rs/nrf-hal](https://github.com/nrf-rs/nrf-hal) [nrf52840-hal on crates.io](https://crates.io/crates/nrf52840-hal)
+* [nrf-rs/nrf-hal](https://github.com/nrf-rs/nrf-hal)
+* [nrf52840-hal on crates.io](https://crates.io/crates/nrf52840-hal)
 
 ## Board Support Crates (BSCs)
 Abstraction Layer on top of HAL, Providing simple access to your external chips on the PCB.
 
-Currently no BSC known for Seeed Xiao nrf52840. Can be created on your own.
+Currently no BSC known for Seeed Xiao nrf52840. It can be created on your own.
 
-* (https://crates.io)
+* [creates.io](https://crates.io)
 
 # Sourcecode
 
