@@ -58,7 +58,7 @@ MEMORY
   /* NOTE 1 K = 1 KiBi = 1024 bytes */
   /* SoftDevice and Bootloader occupy the first 0x27000 bytes */
   FLASH : ORIGIN = 0x00027000, LENGTH = 1024K - 0x27000
-  RAM : ORIGIN = 0x20000000, LENGTH = 256K - 0x1678
+  RAM : ORIGIN = 0x20002000, LENGTH = 256K - 0x2000
 }
 
 INCLUDE "nrf52840.ld"
