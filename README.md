@@ -39,11 +39,14 @@ Define the target nad configure the linker
 target = "thumbv7em-none-eabihf" # Armv7-EM Architektur, Bare-Metal, Hard Float
 
 [target.thumbv7em-none-eabihf]
-linker = "arm-none-eabi-ld" # Linker for ARN
+linker = "arm-none-eabi-ld" # Linker for ARM
 rustflags = [
     "-C" "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
     "-C" "link-arg=-nmagic", # no magic number on bare metal system necessary
     "-C" "link-arg=-nostartfiles", # no standard start files on bare metal
+    "-C" "link-arg=-Map=output.map", # map file for debugging
+    "-C" "panic=abort", # no stack unwinding on panic
+#    "-C" "opt-level=z", # optimize for size
 ]
 ```
 
