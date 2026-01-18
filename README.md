@@ -32,16 +32,18 @@ cargo init
 Options are `--bin` (default) or `--lib`
 
 ## configure project
-Name the target in `.cargo/config.toml`
+create the project configuration file `.cargo/config.toml`.  
+Define the target nad configure the linker
 ```toml
 [build]
-target = "thumbv7em-none-eabihf" # Targetplattform
+target = "thumbv7em-none-eabihf" # Armv7-EM Architektur, Bare-Metal, Hard Float
 
 [target.thumbv7em-none-eabihf]
 linker = "arm-none-eabi-ld" # Linker for ARN
 rustflags = [
-    "-C" "link-arg=-Tmemory.x",  # Linker script
-    "-C" "link-arg=-nostartfiles", # no start files
+    "-C" "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
+    "-C" "link-arg=-nmagic", # no magic number on bare metal system necessary
+    "-C" "link-arg=-nostartfiles", # no standard start files on bare metal
 ]
 ```
 
