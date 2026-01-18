@@ -31,6 +31,20 @@ cargo init
 ```
 Options are `--bin` (default) or `--lib`
 
+## configure project
+Name the target in `.cargo/config.toml`
+```toml
+[build]
+target = "thumbv7em-none-eabihf" # Targetplattform
+
+[target.thumbv7em-none-eabihf]
+linker = "arm-none-eabi-ld" # Linker for ARN
+rustflags = [
+    "-C" "link-arg=-Tmemory.x",  # Linker script
+    "-C" "link-arg=-nostartfiles", # no start files
+]
+```
+
 ## Linker Configuration / Memory Map
 The Bootloader and the SoftDevice needs to be concidered by the linker
 
@@ -102,18 +116,14 @@ Currently no BSC known for Seeed Xiao nrf52840. It can be created on your own.
 
 # Sourcecode
 
-Name the target in `.cargo/config.toml`
-```toml
-[build]
-target = "thumbv7em-none-eabihf" # Targetplattform
+## Add dependencies
 
-[target.thumbv7em-none-eabihf]
-linker = "arm-none-eabi-ld" # Linker for ARN
-rustflags = [
-    "-C" "link-arg=-Tmemory.x",  # Linker script
-    "-C" "link-arg=-nostartfiles", # no start files
-]
-```
+`cargo add <crate>`
+* `cortex-m` [crates.io]()
+* `cortex-m-rt`
+* `embedded-hal`
+* `nrf52840-hal`
+* `panic-halt` [](https://crates.io/crates/panic-halt)
 
 Put the dependency to your `Cargo.toml`
 ```toml
