@@ -20,9 +20,11 @@ The compiler must utilize the command set of the specific chip on which the code
 
 mac: `brew install --cask gcc-arm-embedded`
 
-* (arm-gnu-toolchain on developer.arm.com)[https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads]
-* (gcc-arm-embedded on formulae.brew.sh)[https://formulae.brew.sh/cask/gcc-arm-embedded]
-* (rustc: platform-support/arm-none-eabi)[https://doc.rust-lang.org/rustc/platform-support/arm-none-eabi.html#requirements]
+The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` (see below).
+
+* [arm-gnu-toolchain on developer.arm.com](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+* [gcc-arm-embedded on formulae.brew.sh](https://formulae.brew.sh/cask/gcc-arm-embedded)
+* [rustc: platform-support/arm-none-eabi](https://doc.rust-lang.org/rustc/platform-support/arm-none-eabi.html#requirements)
 
 # cargo: create rust project
 
@@ -49,12 +51,12 @@ target = "thumbv7em-none-eabihf" # Armv7-EM Architektur, Bare-Metal, Hard Float
 [target.thumbv7em-none-eabihf]
 linker = "arm-none-eabi-ld" # Linker for ARM
 rustflags = [
-    "-C" "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
-    "-C" "link-arg=-nmagic", # no magic number on bare metal system necessary
-    "-C" "link-arg=-nostartfiles", # no standard start files on bare metal
-    "-C" "link-arg=-Map=output.map", # map file for debugging
-    "-C" "panic=abort", # no stack unwinding on panic
-#    "-C" "opt-level=z", # optimize for size
+    "-C", "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
+    "-C", "link-arg=--nmagic", # no magic number on bare metal system necessary
+#    "-C", "link-arg=--nostartfiles", # no standard start files on bare metal
+    "-C", "link-arg=-Map=output.map", # map file for debugging (project root)
+    "-C", "panic=abort", # no stack unwinding on panic
+#    "-C", "opt-level=z", # optimize for size
 ]
 ```
 
