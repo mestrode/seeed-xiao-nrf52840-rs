@@ -16,6 +16,14 @@ The compiler must utilize the command set of the specific chip on which the code
   * `none` bare metal, no operating system
   * `eabihf` Embedded Application Binary Interface (EABI) with Hardware float
 
+## Arm Linker
+
+mac: `brew install --cask gcc-arm-embedded`
+
+* (arm-gnu-toolchain on developer.arm.com)[https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads]
+* (gcc-arm-embedded on formulae.brew.sh)[https://formulae.brew.sh/cask/gcc-arm-embedded]
+* (rustc: platform-support/arm-none-eabi)[https://doc.rust-lang.org/rustc/platform-support/arm-none-eabi.html#requirements]
+
 # cargo: create rust project
 
 Either
@@ -84,6 +92,7 @@ INCLUDE "nrf52840.ld"
 ```
 
 ### Source
+* [LD documentation](https://sourceware.org/binutils/docs-2.21/ld/)
 * [Offcial Documentation of SoftDevice S140](https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r)
 * [Nordic SoftDevice Downlodes includes Release Notes](https://www.nordicsemi.com/Products/Development-software/S140/)
 * [Rust Embassy binding to use SoftDevice](https://github.com/embassy-rs/nrf-softdevice/)
