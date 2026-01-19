@@ -21,14 +21,17 @@ The target-tripple (in this case `thumbv7em-none-eabihf`) is encoded according t
   * `none` bare metal, no operating system
   * `eabihf` Embedded Application Binary Interface (EABI) with Hardware float
 
-Supported Targets can be listed by `rustc --print target-list` or `rustup target list`.
+Supported (and installed) Targets can be listed by `rustup target list`. The alternative command `rustc --print target-list` shows more targets.
 
 The target needs to be noted in the project configuration file `.cargo/config.toml` (see below).
 
 ## Arm Linker
 
-The rustc linker is used for personal computer systems. However, ARM-based systems are not supported out of the box.  
-`arm-none-eabi-gcc` is the toolchain for ARM development.
+The default linker `lld` does support limited systems. However, ARM-based systems are not supported out of the box.  
+As an alternative the GNU Linker can be used: `arm-none-eabi-gcc` is the default toolchain for ARM development.
+
+> [!WARNING]
+> incomplete: The linker `arm-none-eabi-ld` and `arm-none-eabi-gcc` can be used?
 
 mac: `brew install --cask gcc-arm-embedded`
 
