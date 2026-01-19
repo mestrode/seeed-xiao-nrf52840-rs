@@ -4,64 +4,47 @@ using Rust on a Seeed Xiao NRF52840 board
 > [!NOTE]
 > I'm using the board without "Sense" in the name. However, it appeared that the same firmware was present on the chip.
 
-# Rust compiler
+# Prerequisite
+
+## Rust compiler
 Install rust e.g. via `rustup`, see [rust documentation](https://rust-lang.org/tools/install/)  
 `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 
 ## Target-Support
 The compiler must utilize the command set of the specific chip on which the code is intended to run. The nRF52840 is based on the ARM Cortex-M4.
-* `rustup target add thumbv7em-none-eabihf` for nrf52840
+
+`rustup target add thumbv7em-none-eabihf` for nrf52840
+
+The target-tripple (in this case `thumbv7em-none-eabihf`) is encoded according to following sceme:
   * `thumb` compact version of ARM command set, optimized for micro controller
   * `v7em` version of ARM Architecture ARMv7-E with micro controller profile Cortex-M
   * `none` bare metal, no operating system
   * `eabihf` Embedded Application Binary Interface (EABI) with Hardware float
 
+The target needs to be noted in the project configuration file `.cargo/config.toml` (see below).
+
 ## Arm Linker
+
+The rustc linker is used for personal computer systems. However, ARM-based systems are not supported out of the box.  
+`arm-none-eabi-gcc` is the toolchain for ARM development.
 
 mac: `brew install --cask gcc-arm-embedded`
 
-The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` (see below).
+The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` (see below). As an alternative, it seemed `arm-none-eabi-gcc` could also be specified, and this provides some kind of linker time optimization.
+
+Since we're looking for cross-compiling on an bare metal system, the linker needs detailed specification about adress ranges and data in an memory map (see below).
 
 * [arm-gnu-toolchain on developer.arm.com](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
 * [gcc-arm-embedded on formulae.brew.sh](https://formulae.brew.sh/cask/gcc-arm-embedded)
 * [rustc: platform-support/arm-none-eabi](https://doc.rust-lang.org/rustc/platform-support/arm-none-eabi.html#requirements)
 
-# cargo: create rust project
-
-Either
-```
-cargo new project_name
-cd project_name
-```
-or
-```
-mkdir project_name
-cd project_name
-cargo init
-```
-Options are `--bin` (default) or `--lib`
-
-## configure project
-create the project configuration file `.cargo/config.toml`.  
-Define the target nad configure the linker
-```toml
-[build]
-target = "thumbv7em-none-eabihf" # Armv7-EM Architektur, Bare-Metal, Hard Float
-
-[target.thumbv7em-none-eabihf]
-linker = "arm-none-eabi-ld" # Linker for ARM
-rustflags = [
-    "-C", "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
-    "-C", "link-arg=--nmagic", # no magic number on bare metal system necessary
-#    "-C", "link-arg=--nostartfiles", # no standard start files on bare metal
-    "-C", "link-arg=-Map=output.map", # map file for debugging (project root)
-    "-C", "panic=abort", # no stack unwinding on panic
-#    "-C", "opt-level=z", # optimize for size
-]
-```
+###
 
 ## Linker Configuration / Memory Map
-The Bootloader and the SoftDevice needs to be concidered by the linker
+The Address range of your specific controller will be specified in a memory map.  
+In case your system is using a bootloader and/or SoftDevice this needs to be concidered by the linker.
+
+The linker-script `memory.x` (sometimes a different name with `.ld` extension) specifies a MEMORY and a 
 
 ### Flash
 ```
@@ -100,6 +83,48 @@ INCLUDE "nrf52840.ld"
 * [Rust Embassy binding to use SoftDevice](https://github.com/embassy-rs/nrf-softdevice/)
 * memory.x [Wumpf/Seeed-nRF52840-Sense-projects](https://github.com/Wumpf/Seeed-nRF52840-Sense-projects/blob/main/memory.x)
 * memory.x [example in embassy-rs/embassy](https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/memory.x)
+
+
+# cargo: create an empty rust project
+
+Either
+```
+cargo new project_name
+cd project_name
+```
+or
+```
+mkdir project_name
+cd project_name
+cargo init
+```
+Options are `--bin` (default) or `--lib`
+
+
+## Project Configuration
+
+Create the project configuration file `.cargo/config.toml`.  
+Define the target and configure the linker and additional linker-flags.
+
+> [!WARNING]
+> Watch out, the cargo system also controls some linker flags. Your configuration may collide with the cargo settings.
+
+```toml
+[build]
+target = "thumbv7em-none-eabihf" # Armv7-EM Architektur, Bare-Metal, Hard Float
+
+[target.thumbv7em-none-eabihf]
+linker = "arm-none-eabi-ld" # Linker for ARM
+rustflags = [
+    "-C", "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
+    "-C", "link-arg=--nmagic", # no magic number on bare metal system necessary
+#    "-C", "link-arg=--nostartfiles", # no standard start files on bare metal
+    "-C", "link-arg=-Map=output.map", # map file for debugging (project root)
+#    "-C", "panic=abort", # covered by cargo
+#    "-C", "opt-level=z", # covered by cargo
+]
+```
+
 
 # Write Your Firmware
 
