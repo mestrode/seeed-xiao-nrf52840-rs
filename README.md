@@ -21,6 +21,8 @@ The target-tripple (in this case `thumbv7em-none-eabihf`) is encoded according t
   * `none` bare metal, no operating system
   * `eabihf` Embedded Application Binary Interface (EABI) with Hardware float
 
+Supported Targets can be listed by `rustc --print target-list` or `rustup target list`.
+
 The target needs to be noted in the project configuration file `.cargo/config.toml` (see below).
 
 ## Arm Linker
