@@ -49,24 +49,16 @@ Since we're looking for cross-compiling on an bare metal system, the linker need
 The Address range of your specific controller will be specified in a memory map.  
 In case your system is using a bootloader and/or SoftDevice this needs to be concidered by the linker.
 
-The linker-script `memory.x` (sometimes a different name with a `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional; however, at least the MEMORY command is important to inform the linker about the size and addresses of Flash and RAM and the existence of Bootloader and/or Softdevice.
+The linker-script `memory.x` (sometimes a different name with a `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional; however, at least the MEMORY command is important to inform the linker about the accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
 ### Flash
 
 |name|size|adress|comment|
 |:---|---:|---:|---|
 |nrf52840| 1 MB FLASH |0x00000000 - 0x00100000|
-|Bootloader| 16 kB FLASH| 0x00000000 - 0x00004000 | overlapping with SoftDevice|
 |MBR + SoftDevice s140 v7.3.0|156.0 kB FLASH|0x00000000 - 0x00027000|
 |User Code||0x00027000 - |after SoftDevice|
-
-### RAM
-|name|size|adress|comment|
-|:---|---:|---:|---|
-|nrf52840|256 KB|0x20000000 - 0x20040000|
-|Bootloader|0 B| |inactive while usercode is running|
-|SoftDevice s140 v7.3.0|5.6 kB|0x20000000 - 0x20001678|
-|User Code||0x20001678 - |after SoftDevice|
+|Bootloader| 16 kB FLASH| 0x00000000 - 0x00004000 | overlapping with SoftDevice? |
 
 | Name                | Region                    | Region Dec        | Size        | Size Dec |
 |---------------------|---------------------------|-------------------|-------------|----------|
@@ -81,11 +73,14 @@ The linker-script `memory.x` (sometimes a different name with a `.ld` extension)
 MEMORY
 {
   /* NOTE 1 K = 1 KiBi = 1024 bytes */
-  /* SoftDevice and Bootloader occupy the first 0x27000 bytes */
+  /* SoftDevice occupy the first 0x27000 bytes */
   FLASH_MBR (!A) : ORIGIN = 0x00000000, LENGTH = 1K
-  FLASH_SOFTDEVICE (R!A) : ORIGIN = , LENGTH = 
+  FLASH_SOFTDEVICE (R!A) : 0x00001000, ORIGIN = , LENGTH = 156K
   FLASH (RWX) : ORIGIN = 0x00027000, LENGTH = 1024K - 0x27000
-  FLASH_BOOTLOADER (!A) : ORIGIN, = LENGTH =
+  FLASH_BOOTLOADER (!A) : ORIGIN = 0x74000, LENGTH = 40K
+  MBR_PARAMS_PAGE  (!A) : ORIGIN = 0x7E000, LENGTH = 4K
+  BOOTLOADER_SETTINGS (!A) : ORIGIN = 0x7F000, LENGTH = 4K
+
   RAM_MBR (!A) : ORIGIN = 0x20000000, LENGTH = 8 B # MBR vector forwarding
   RAM_SOFTDEVICE (!A) : ORIGIN = 0x20000008, LENGTH = 0x20001678 - 0x20000008 # SoftDevice s140 v7.3.0, 5.6 kB
   RAM (RW) : ORIGIN = 0x20001678, LENGTH = 256K - 0x1678
@@ -93,6 +88,7 @@ MEMORY
 ```
 
 ### Source
+* [Linkerfile of Seeed Bootloader](https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader/blob/master/linker/nrf52840.ld)
 * [LD documentation](https://sourceware.org/binutils/docs-2.21/ld/)
 * [Offcial Documentation of SoftDevice S140](https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r)
 * [Nordic SoftDevice Downlodes includes Release Notes](https://www.nordicsemi.com/Products/Development-software/S140/)
@@ -100,6 +96,7 @@ MEMORY
 * memory.x [Wumpf/Seeed-nRF52840-Sense-projects](https://github.com/Wumpf/Seeed-nRF52840-Sense-projects/blob/main/memory.x)
 * memory.x [example in embassy-rs/embassy](https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/memory.x)
 * (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mbr_bootloader/bootloader.html)
+* (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html)
 
 
 # cargo: create an empty rust project
