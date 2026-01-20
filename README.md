@@ -68,6 +68,13 @@ The linker-script `memory.x` (sometimes a different name with a `.ld` extension)
 |SoftDevice s140 v7.3.0|5.6 kB|0x20000000 - 0x20001678|
 |User Code||0x20001678 - |after SoftDevice|
 
+| Name                | Region                    | Region Dec        | Size        | Size Dec |
+|---------------------|---------------------------|-------------------|-------------|----------|
+| MBR                 | 0x0000'0000 - 0x0000'1000 |       0 -   4'096 | 0x0000'1000 |    4'096 |
+| USER Application    | 0x0000'1000 - 0x000D'C000 |   4'096 - 901'120 | 0x000D'B000 |  897'024 |
+| USER OpenThread NVM | 0x000D'C000 - 0x000E'0000 | 901'120 - 917'504 | 0x0000'4000 |   16'384 |
+| BOOTLOADER          | 0x000E'0000 - 0x    '     | 917'504 -         | 0x    '     |     '    |
+
 ### Memory Map
 `memory.x` file, located in the project root
 ```
@@ -75,11 +82,14 @@ MEMORY
 {
   /* NOTE 1 K = 1 KiBi = 1024 bytes */
   /* SoftDevice and Bootloader occupy the first 0x27000 bytes */
-  FLASH : ORIGIN = 0x00027000, LENGTH = 1024K - 0x27000
-  RAM : ORIGIN = 0x20002000, LENGTH = 256K - 0x2000
+  FLASH_MBR (!A) : ORIGIN = 0x00000000, LENGTH = 1K
+  FLASH_SOFTDEVICE (R!A) : ORIGIN = , LENGTH = 
+  FLASH (RWX) : ORIGIN = 0x00027000, LENGTH = 1024K - 0x27000
+  FLASH_BOOTLOADER (!A) : ORIGIN, = LENGTH =
+  RAM_MBR (!A) : ORIGIN = 0x20000000, LENGTH = 8 B # MBR vector forwarding
+  RAM_SOFTDEVICE (!A) : ORIGIN = 0x20000008, LENGTH = 0x20001678 - 0x20000008 # SoftDevice s140 v7.3.0, 5.6 kB
+  RAM (RW) : ORIGIN = 0x20001678, LENGTH = 256K - 0x1678
 }
-
-INCLUDE "nrf52840.ld"
 ```
 
 ### Source
@@ -89,6 +99,7 @@ INCLUDE "nrf52840.ld"
 * [Rust Embassy binding to use SoftDevice](https://github.com/embassy-rs/nrf-softdevice/)
 * memory.x [Wumpf/Seeed-nRF52840-Sense-projects](https://github.com/Wumpf/Seeed-nRF52840-Sense-projects/blob/main/memory.x)
 * memory.x [example in embassy-rs/embassy](https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/memory.x)
+* (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mbr_bootloader/bootloader.html)
 
 
 # cargo: create an empty rust project
