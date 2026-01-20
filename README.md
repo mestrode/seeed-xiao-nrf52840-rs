@@ -49,23 +49,24 @@ Since we're looking for cross-compiling on an bare metal system, the linker need
 The Address range of your specific controller will be specified in a memory map.  
 In case your system is using a bootloader and/or SoftDevice this needs to be concidered by the linker.
 
-The linker-script `memory.x` (sometimes a different name with `.ld` extension) specifies a MEMORY and a 
+The linker-script `memory.x` (sometimes a different name with a `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional; however, at least the MEMORY command is important to inform the linker about the size and addresses of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
 ### Flash
-```
-nrf52840: 1 MB FLASH (0x00000000 - 0x00100000)  
-Bootloader: 16 kB FLASH (0x00000000 - 0x00004000) (overlapping with SoftDevice)  
-MBR + SoftDevice s140 v7.3.0: 156.0 kB FLASH (0x00000000 - 0x00027000)  
-User Code: Starting at 0x00027000 (after SoftDevice)
-```
+
+|name|size|adress|comment|
+|:---|---:|---:|---|
+|nrf52840| 1 MB FLASH |0x00000000 - 0x00100000|
+|Bootloader| 16 kB FLASH| 0x00000000 - 0x00004000 | overlapping with SoftDevice|
+|MBR + SoftDevice s140 v7.3.0|156.0 kB FLASH|0x00000000 - 0x00027000|
+|User Code||0x00027000 - |after SoftDevice|
 
 ### RAM
-```
-nrf52840: 256 KB RAM (0x20000000 - 0x20040000)  
-Bootloader: 0 B RAM (inactive while usercode is running)  
-SoftDevice s140 v7.3.0: 5.6 kB RAM (0x20000000 - 0x20001678)  
-User Code: Starting at `0x20001678` (after SoftDevice)
-```
+|name|size|adress|comment|
+|:---|---:|---:|---|
+|nrf52840|256 KB|0x20000000 - 0x20040000|
+|Bootloader|0 B| |inactive while usercode is running|
+|SoftDevice s140 v7.3.0|5.6 kB|0x20000000 - 0x20001678|
+|User Code||0x20001678 - |after SoftDevice|
 
 ### Memory Map
 `memory.x` file, located in the project root
