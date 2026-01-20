@@ -72,18 +72,35 @@ The linker-script `memory.x` (sometimes a different name with a `.ld` extension)
 ```
 MEMORY
 {
-  /* NOTE 1 K = 1 KiBi = 1024 bytes */
-  /* SoftDevice occupy the first 0x27000 bytes */
+  /* MBR (Master Boot Record) */
   FLASH_MBR (!A) : ORIGIN = 0x00000000, LENGTH = 1K
-  FLASH_SOFTDEVICE (R!A) : 0x00001000, ORIGIN = , LENGTH = 156K
-  FLASH (RWX) : ORIGIN = 0x00027000, LENGTH = 1024K - 0x27000
-  FLASH_BOOTLOADER (!A) : ORIGIN = 0x74000, LENGTH = 40K
-  MBR_PARAMS_PAGE  (!A) : ORIGIN = 0x7E000, LENGTH = 4K
-  BOOTLOADER_SETTINGS (!A) : ORIGIN = 0x7F000, LENGTH = 4K
 
-  RAM_MBR (!A) : ORIGIN = 0x20000000, LENGTH = 8 B # MBR vector forwarding
-  RAM_SOFTDEVICE (!A) : ORIGIN = 0x20000008, LENGTH = 0x20001678 - 0x20000008 # SoftDevice s140 v7.3.0, 5.6 kB
+  /* SoftDevice s140 v7.3.0 (156 KB) */
+  FLASH_SOFTDEVICE (!A) : ORIGIN = 0x00001000, LENGTH = 156K
+
+  /* Anwendungs-Flash (1024 KB - 0x27000 = 995 KB) */
+  FLASH (RWX) : ORIGIN = 0x00027000, LENGTH = 0x00074000 - 0x00027000
+
+  /* Bootloader-Flash (40 KB) */
+  FLASH_BOOTLOADER (!A) : ORIGIN = 0x00074000, LENGTH = 40K
+
+  /* MBR-Parameterseite (4 KB) */
+  MBR_PARAMS_PAGE (!A) : ORIGIN = 0x0007E000, LENGTH = 4K
+
+  /* Bootloader-Einstellungen (4 KB) */
+  BOOTLOADER_SETTINGS (!A) : ORIGIN = 0x0007F000, LENGTH = 4K
+
+  /* MBR-Vektorweiterleitung (8 Byte) */
+  RAM_MBR (!A) : ORIGIN = 0x20000000, LENGTH = 8
+
+  /* SoftDevice s140 v7.3.0 (5.6 KB) */
+  RAM_SOFTDEVICE (!A) : ORIGIN = 0x20000008, LENGTH = 0x20001678 - 0x20000008
+
+  /* Anwendungs-RAM (256 KB - 0x1678 = 249.75 KB) */
   RAM (RW) : ORIGIN = 0x20001678, LENGTH = 256K - 0x1678
+
+  /* Anwendungs-RAM (256 KB - 0x1678 = 249.75 KB) */
+  RAM_NOINIT (!A) : ORIGIN = 0x20001678, LENGTH = 256K - 0x1678
 }
 ```
 
