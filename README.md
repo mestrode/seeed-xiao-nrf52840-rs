@@ -51,56 +51,26 @@ In case your system is using a bootloader and/or SoftDevice this needs to be con
 
 The linker-script `memory.x` (sometimes a different name with a `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional; however, at least the MEMORY command is important to inform the linker about the accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
-### Flash
-
-|name|size|adress|comment|
-|:---|---:|---:|---|
-|nrf52840| 1 MB FLASH |0x00000000 - 0x00100000|
-|MBR + SoftDevice s140 v7.3.0|156.0 kB FLASH|0x00000000 - 0x00027000|
-|User Code||0x00027000 - |after SoftDevice|
-|Bootloader| 16 kB FLASH| 0x00000000 - 0x00004000 | overlapping with SoftDevice? |
-
-| Name                | Region                    | Region Dec        | Size        | Size Dec |
-|---------------------|---------------------------|-------------------|-------------|----------|
-| MBR                 | 0x0000'0000 - 0x0000'1000 |       0 -   4'096 | 0x0000'1000 |    4'096 |
-| USER Application    | 0x0000'1000 - 0x000D'C000 |   4'096 - 901'120 | 0x000D'B000 |  897'024 |
-| USER OpenThread NVM | 0x000D'C000 - 0x000E'0000 | 901'120 - 917'504 | 0x0000'4000 |   16'384 |
-| BOOTLOADER          | 0x000E'0000 - 0x    '     | 917'504 -         | 0x    '     |     '    |
-
 ### Memory Map
 `memory.x` file, located in the project root
 ```
 MEMORY
 {
-  /* MBR (Master Boot Record) */
-  FLASH_MBR (!A) : ORIGIN = 0x00000000, LENGTH = 1K
+  /* Flash memory for the application.
+   * Start after MBR (4kB), Bootloader (38kB), and SoftDevice (156kB).
+   * MBR: 0x00000000-0x00001000
+   * Bootloader: 0x000F4000-0x000FE000
+   * SoftDevice: 0x00001000-0x00027000 (156kB)
+   * Application: 0x00027000-0x00100000 (rest of flash)
+   */
+  FLASH (rx) : ORIGIN = 0x27000, LENGTH = 0x100000 - 0x27000 - 0x10000 /* ~800kB */
 
-  /* SoftDevice s140 v7.3.0 (156 KB) */
-  FLASH_SOFTDEVICE (!A) : ORIGIN = 0x00001000, LENGTH = 156K
-
-  /* Anwendungs-Flash (1024 KB - 0x27000 = 995 KB) */
-  FLASH (RWX) : ORIGIN = 0x00027000, LENGTH = 0x00074000 - 0x00027000
-
-  /* Bootloader-Flash (40 KB) */
-  FLASH_BOOTLOADER (!A) : ORIGIN = 0x00074000, LENGTH = 40K
-
-  /* MBR-Parameterseite (4 KB) */
-  MBR_PARAMS_PAGE (!A) : ORIGIN = 0x0007E000, LENGTH = 4K
-
-  /* Bootloader-Einstellungen (4 KB) */
-  BOOTLOADER_SETTINGS (!A) : ORIGIN = 0x0007F000, LENGTH = 4K
-
-  /* MBR-Vektorweiterleitung (8 Byte) */
-  RAM_MBR (!A) : ORIGIN = 0x20000000, LENGTH = 8
-
-  /* SoftDevice s140 v7.3.0 (5.6 KB) */
-  RAM_SOFTDEVICE (!A) : ORIGIN = 0x20000008, LENGTH = 0x20001678 - 0x20000008
-
-  /* Anwendungs-RAM (256 KB - 0x1678 = 249.75 KB) */
-  RAM (RW) : ORIGIN = 0x20001678, LENGTH = 256K - 0x1678
-
-  /* Anwendungs-RAM (256 KB - 0x1678 = 249.75 KB) */
-  RAM_NOINIT (!A) : ORIGIN = 0x20001678, LENGTH = 256K - 0x1678
+  /* RAM for the application.
+   * SoftDevice reserves 0x1678 bytes of RAM.
+   * Bootloader uses RAM from 0x20008000.
+   * Application uses the rest, starting from 0x20000000.
+   */
+  RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x20040000 - 0x20000000 - 0x1678 /* ~252kB */
 }
 ```
 
