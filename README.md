@@ -183,10 +183,11 @@ nrf-hal = "0.16.0"       # HAL for nRF52840
 embedded-hal = "0.2.7"   # Trait-definition for HAL (option)
 
 ```
-Build Script `build.rs`
+Dynamic Build Script `build.rs`
 ```rust
 fn main () {
-    println!("cargo:rustc-link-arg=-Tmemory.x");
+// if static flags (.cargo/config.toml) should be replaced use: 
+//    println!("cargo:rustc-link-arg=-Tmemory.x");
     println!("cargo:rerun-if-changed=memory.x");
 }
 ```
