@@ -77,9 +77,8 @@ MEMORY
   /* Avoid conflict with NOINIT for OTA bond sharing */
   RAM (rwx) : ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000 - 0x1678 /* ~252kB */
 
-   /** Location of non initialized RAM. Non initialized RAM is used for exchanging bond information
+  /** Location of non initialized RAM. Non initialized RAM is used for exchanging bond information
    *  from application to bootloader when using buttonless DFU OTA. */
-
   APP_NOINIT (rwx) : ORIGIN = 0x20007F80, LENGTH = 0x80
 }
 ```
