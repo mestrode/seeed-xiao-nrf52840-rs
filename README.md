@@ -25,13 +25,9 @@ Supported (and installed) Targets can be listed by `rustup target list`. The alt
 
 The target needs to be noted in the project configuration file `.cargo/config.toml` (see below).
 
-## Arm Linker
-
-The default linker `lld` does support limited systems. However, ARM-based systems are not supported out of the box.  
-As an alternative the GNU Linker can be used: `arm-none-eabi-gcc` is the default toolchain for ARM development.
-
-> [!WARNING]
-> incomplete: The linker `arm-none-eabi-ld` and `arm-none-eabi-gcc` can be used?
+## Linker
+The default rust linker `lld` does support limited systems. However, ARM-based systems are not supported out of the box.  
+For ARM developement the detailt toolchain is `arm-none-eabi-gcc`. The containing linker ist named `arm-none-eabi-ld`.
 
 mac: `brew install --cask gcc-arm-embedded`
 
@@ -39,15 +35,15 @@ The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` 
 
 Since we're looking for cross-compiling on an bare metal system, the linker needs detailed specification about adress ranges and data in an memory map (see below).
 
+May the [meld linker](https://github.com/rui314/mold) is an alternative.
+
 * [arm-gnu-toolchain on developer.arm.com](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
 * [gcc-arm-embedded on formulae.brew.sh](https://formulae.brew.sh/cask/gcc-arm-embedded)
 * [rustc: platform-support/arm-none-eabi](https://doc.rust-lang.org/rustc/platform-support/arm-none-eabi.html#requirements)
 
-###
-
 ## Linker Configuration / Memory Map
-The Address range of your specific controller will be specified in a memory map.  
-In case your system is using a bootloader and/or SoftDevice this needs to be concidered by the linker.
+The memory organization in your specific controller needs to be specified in a memory map for the linker.  
+In case your system is using a bootloader and/or SoftDevice also this needs to be concidered.
 
 The linker-script `memory.x` (sometimes a different name with a `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional; however, at least the MEMORY command is important to inform the linker about the accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
@@ -57,20 +53,34 @@ The linker-script `memory.x` (sometimes a different name with a `.ld` extension)
 MEMORY
 {
   /* Flash memory for the application.
-   * Start after MBR (4kB), Bootloader (38kB), and SoftDevice (156kB).
-   * MBR: 0x00000000-0x00001000
-   * Bootloader: 0x000F4000-0x000FE000
-   * SoftDevice: 0x00001000-0x00027000 (156kB)
-   * Application: 0x00027000-0x00100000 (rest of flash)
+   * CHIP nrf52840        0x00000000-0x01000000 (1 MiB = 1024 KiB)
+
+   * MBR                  0x00000000-0x00001000 (4K)
+   * SoftDevice           0x00001000-0x00027000 (156K)
+   * Application          0x00027000-0x000F4000 (--> 818K)
+   * Bootloader + config  0x000F4000-0x000FE000 (38K+2K)
+   * MBR Params Page      0x000FE000-0x000FF000 (4K)
+   * Bootloader settings  0x000FF000-0x00100000 (4K)
    */
-  FLASH (rx) : ORIGIN = 0x27000, LENGTH = 0x100000 - 0x27000 - 0x10000 /* ~800kB */
+  FLASH (rx) : ORIGIN = 0x27000, LENGTH = 0x000F4000 - 0x00027000 /* 812 KiB */
 
   /* RAM for the application.
-   * SoftDevice reserves 0x1678 bytes of RAM.
-   * Bootloader uses RAM from 0x20008000.
-   * Application uses the rest, starting from 0x20000000.
+   * CHIP nrf52840        0x20000000-0x20040000 (256 KiB)
+
+   * Bootloader DblReset  0x20007F7C-0x20007F80 (0x04)
+   * NOINIT               0x20007F80-0x20008000 (0x80)
+   * Bootloader         ( 0x20008000-0x20040000 )
+   * Application          0x20008000-0x20040000 (~250K)
+   * SoftDevice uses  0x1678 bytes (~5.75KiB) of RAM.
    */
-  RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x20040000 - 0x20000000 - 0x1678 /* ~252kB */
+
+  /* Avoid conflict with NOINIT for OTA bond sharing */
+  RAM (rwx) : ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000 - 0x1678 /* ~252kB */
+
+   /** Location of non initialized RAM. Non initialized RAM is used for exchanging bond information
+   *  from application to bootloader when using buttonless DFU OTA. */
+
+  APP_NOINIT (rwx) : ORIGIN = 0x20007F80, LENGTH = 0x80
 }
 ```
 
@@ -125,7 +135,6 @@ rustflags = [
 #    "-C", "opt-level=z", # covered by cargo
 ]
 ```
-
 
 # Write Your Firmware
 
