@@ -138,11 +138,12 @@ rustflags = [
 # Write Your Firmware
 
 ## System View Description (SVD)
-XML file, describing registers, storage addresses, and peripherals. The file is provided by the semiconductor manufacturer for each specific controller type.
+XML file, describing registers, storage addresses, and peripherals. The file is provided by the semiconductor manufacturer for each specific controller type.  
+Using `svd2rust` this information can be converted into a PAC. However, the community has already done this for you.
 
 ## Peripheral Access Crates (PACs)
+Rust Crate, based on SVD. Provides safe and typesafe access to hardware registers.  
 Controller Family- or Type-specific.
-Rust Crate, based on SVD. Provides safe and typesafe access to hardware registers.
 
 Can be created by using `svd2rust`. However, the community has already done this for you.
 
