@@ -83,8 +83,8 @@ MEMORY
    * SoftDevice           ORIGIN = 0x00001000, LENGTH = 0x00027000 - 0x00001000 (156K) == S140 V.7.3.0
    */
 
-   FLASH /*APP*/ (rx):    ORIGIN = 0x00027000, LENGTH = 0x000ED000 - 0x00027000 /* 812 KiB == adruino config*/
-  /* FLASH APP   (rx):    ORIGIN = 0x00027000, LENGTH = 0x000F4000 - 0x00027000 == */
+   FLASH /*APP*/    (rx): ORIGIN = 0x00027000, LENGTH = 0x000ED000 - 0x00027000 /* 812 KiB == adruino config*/
+  /* FLASH APP      (rx): ORIGIN = 0x00027000, LENGTH = 0x000F4000 - 0x00027000 == */
 
   /*
    * Bootloader + config  ORIGIN = 0x000F4000, LENGTH = 0x000FE000 - 0x000F4000 (38K+2K)
@@ -99,7 +99,7 @@ MEMORY
    * NOINIT               ORIGIN = 0x20007F80, LENGTH = 0x20008000 - 0x20007F80 (0x80) Location of non initialized RAM. Non initialized RAM is used for exchanging bond information from application to bootloader when using buttonless DFU OTA.
    * Bootloader         ( ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000) !! not active, while app is running
    */
-   RAM (RW):              ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000 /* (~250K) */
+   RAM             (rwx): ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000 /* (~250K) */
   /* SoftDevice uses 0x1678 bytes (~5.75 KiB) of RAM, dynamically allocated (?) */
 }
 ```
