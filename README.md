@@ -128,7 +128,7 @@ MEMORY
 ```
 
 ##### Third information source:
-Downloading the UF2 file of my current Arduino app, reading the content using `uf2info`.  
+Downloading the UF2 file of my current Arduino app, reading the content using [`uf2info`](https://github.com/wintermute101/uf2info).  
 Assuming the file does contain, besides the app, also a bootloader and softdevice. However, it ends at 0xEA000. 
 ```txt
 $ uf2info CURRENT.UF2
