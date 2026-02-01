@@ -33,7 +33,7 @@ mac: `brew install --cask gcc-arm-embedded`
 
 The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` (see below). As an alternative, it seemed `arm-none-eabi-gcc` could also be specified, and this provides some kind of linker time optimization.
 
-Since we're looking for cross-compiling on an bare metal system, the linker needs detailed specification about adress ranges and data in an memory map (see below).
+Since we're looking for cross-compiling on a bare metal system, the linker needs detailed specification about adress ranges and data in an memory map (see below).
 
 May the [meld linker](https://github.com/rui314/mold) is an alternative.
 
@@ -45,46 +45,71 @@ May the [meld linker](https://github.com/rui314/mold) is an alternative.
 The memory organization in your specific controller needs to be specified in a memory map for the linker.  
 In case your system is using a bootloader and/or SoftDevice also this needs to be concidered.
 
-The linker-script `memory.x` (sometimes a different name with a `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional; however, at least the MEMORY command is important to inform the linker about the accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
+The linker-script `memory.x` or `link.x` (or a speakting name with `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional in theory. However, at least the MEMORY command is important to inform the linker about accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
-### Memory Map
-`memory.x` file, located in the project root
-```
+First information source could be the Arduino configuration provided by Seeed: [Seeed Xiao Wiki](https://wiki.seeedstudio.com/XIAO_BLE/) -> [board package (JSON)](https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json) --> [Seeed_nRF52_Boards-1.1.12.tar.bz2](https://files.seeedstudio.com/arduino/core/nRF52/Seeed_nRF52_Boards-1.1.12.tar.bz2) --> cores/nRF5/linker/{nrf52840_s140_v7.ld/nrf_common.ld} -->
+```ld
 MEMORY
 {
-  /* Flash memory for the application.
-   * CHIP nrf52840        0x00000000-0x01000000 (1 MiB = 1024 KiB)
+  FLASH /* APP */     (rx): ORIGIN = 0x27000, LENGTH = 0x000ED000 - 0x00027000
+  RAM                 (rwx):ORIGIN = 0x20006000, LENGTH = 0x20040000 - 0x20006000
+}
+```
+Second information source may the Seeed bootloader [Linkerfile of Seeed Bootloader](https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader/blob/master/linker/nrf52840.ld).
+```ld
+MEMORY
+{
+  FLASH /*BOOTLOADER*/(rx): ORIGIN = 0xF4000,      LENGTH = 0xFE000-0xF4000 - 2K /* 38 KB; Flash start address for the bootloader. */
+  BOOTLOADER_CONFIG   (r):  ORIGIN = 0xFE000 - 2K, LENGTH = 2K
+  MBR_PARAMS_PAGE     (rw): ORIGIN = 0xFE000,      LENGTH = 0x1000 /** Location of mbr params page in flash. */
+  BOOTLOADER_SETTINGS (rw): ORIGIN = 0xFF000,      LENGTH = 0x1000 /** Location of bootloader setting in flash. */
 
-   * MBR                  0x00000000-0x00001000 (4K)
-   * SoftDevice           0x00001000-0x00027000 (156K)
-   * Application          0x00027000-0x000F4000 (--> 818K)
-   * Bootloader + config  0x000F4000-0x000FE000 (38K+2K)
-   * MBR Params Page      0x000FE000-0x000FF000 (4K)
-   * Bootloader settings  0x000FF000-0x00100000 (4K)
-   */
-  FLASH (rx) : ORIGIN = 0x27000, LENGTH = 0x000F4000 - 0x00027000 /* 812 KiB */
-
-  /* RAM for the application.
-   * CHIP nrf52840        0x20000000-0x20040000 (256 KiB)
-
-   * Bootloader DblReset  0x20007F7C-0x20007F80 (0x04)
-   * NOINIT               0x20007F80-0x20008000 (0x80)
-   * Bootloader         ( 0x20008000-0x20040000 )
-   * Application          0x20008000-0x20040000 (~250K)
-   * SoftDevice uses  0x1678 bytes (~5.75KiB) of RAM.
-   */
-
-  /* Avoid conflict with NOINIT for OTA bond sharing */
-  RAM (rwx) : ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000 - 0x1678 /* ~252kB */
-
-  /** Location of non initialized RAM. Non initialized RAM is used for exchanging bond information
-   *  from application to bootloader when using buttonless DFU OTA. */
-  APP_NOINIT (rwx) : ORIGIN = 0x20007F80, LENGTH = 0x80
+  /** RAM Region for bootloader. */
+  DBL_RESET           (rwx):ORIGIN = 0x20007F7C, LENGTH = 0x04 /* Location for double reset detection, no init */
+  NOINIT              (rwx):ORIGIN = 0x20007F80, LENGTH = 0x80 /** Location of non initialized RAM. Non initialized RAM is used for exchanging bond information from application to bootloader when using buttonless DFU OTA. */
+  RAM                 (rwx):ORIGIN = 0x20008000, LENGTH = 0x20040000-0x20008000 /* Avoid conflict with NOINIT for OTA bond sharing */
 }
 ```
 
+### Memory Map
+`memory.x` file, located in the project root
+```ld
+MEMORY
+{
+  /* Flash memory for the application.
+   * CHIP nrf52840        ORIGIN = 0x00000000, LENGTH = 0x01000000 (1 MiB = 1024 KiB)
+
+   * MBR                  ORIGIN = 0x00000000, LENGTH = 0x00001000 - 0x00000000 (4K)
+   * SoftDevice           ORIGIN = 0x00001000, LENGTH = 0x00027000 - 0x00001000 (156K) == S140 V.7.3.0
+   */
+
+   FLASH /*APP*/ (rx):    ORIGIN = 0x00027000, LENGTH = 0x000ED000 - 0x00027000 /* 812 KiB == adruino config*/
+  /* FLASH APP   (rx):    ORIGIN = 0x00027000, LENGTH = 0x000F4000 - 0x00027000 == */
+
+  /*
+   * Bootloader + config  ORIGIN = 0x000F4000, LENGTH = 0x000FE000 - 0x000F4000 (38K+2K)
+   * MBR Params Page      ORIGIN = 0x000FE000, LENGTH = 0x000FF000 - 0x000FE000 (4K)
+   * Bootloader settings  ORIGIN = 0x000FF000, LENGTH = 0x00100000 - 0x000FF000 (4K)
+   */
+
+  /* RAM for the application.
+   * CHIP nrf52840        ORIGIN = 0x20000000, LENGTH = 0x20040000 - 0x20000000 (256 KiB)
+
+   * Bootloader DblReset  ORIGIN = 0x20007F7C, LENGTH = 0x20007F80 - 0x20007F7C (0x04)
+   * NOINIT               ORIGIN = 0x20007F80, LENGTH = 0x20008000 - 0x20007F80 (0x80) Location of non initialized RAM. Non initialized RAM is used for exchanging bond information from application to bootloader when using buttonless DFU OTA.
+   * Bootloader         ( ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000) !! not active, while app is running
+   */
+   RAM (RW):              ORIGIN = 0x20008000, LENGTH = 0x20040000 - 0x20008000 /* (~250K) */
+  /* SoftDevice uses 0x1678 bytes (~5.75 KiB) of RAM, dynamically allocated (?) */
+}
+```
+> [!NOTE]
+> I just selected the conservative values. If you want to push the boundaries, you may take a deeper look here.  
+> Flash (App) end is set to 0xED000. There may be some buffer. See the bootloader linker script.  
+> RAM (App) begin is set to 0x20008000. 0x20006000 may also work. See the Arduino linker script.
+
 ### Source
-* [Linkerfile of Seeed Bootloader](https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader/blob/master/linker/nrf52840.ld)
+* 
 * [LD documentation](https://sourceware.org/binutils/docs-2.21/ld/)
 * [Offcial Documentation of SoftDevice S140](https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r)
 * [Nordic SoftDevice Downlodes includes Release Notes](https://www.nordicsemi.com/Products/Development-software/S140/)
