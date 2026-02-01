@@ -101,7 +101,8 @@ In case your system is using a bootloader and/or SoftDevice, also this needs to 
 
 The linker-script `memory.x` or `link.x` (or a speakting name with `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional in theory. However, at least the MEMORY command is important to inform the linker about accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
-First information source could be the Arduino configuration provided by Seeed: [Seeed Xiao Wiki](https://wiki.seeedstudio.com/XIAO_BLE/) -> [board package (JSON)](https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json) --> [Seeed_nRF52_Boards-1.1.12.tar.bz2](https://files.seeedstudio.com/arduino/core/nRF52/Seeed_nRF52_Boards-1.1.12.tar.bz2) --> cores/nRF5/linker/{nrf52840_s140_v7.ld/nrf_common.ld} -->
+##### First information source
+could be the Arduino configuration provided by Seeed: [Seeed Xiao Wiki](https://wiki.seeedstudio.com/XIAO_BLE/) -> [board package (JSON)](https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json) --> [Seeed_nRF52_Boards-1.1.12.tar.bz2](https://files.seeedstudio.com/arduino/core/nRF52/Seeed_nRF52_Boards-1.1.12.tar.bz2) --> cores/nRF5/linker/{nrf52840_s140_v7.ld/nrf_common.ld} -->
 ```ld
 MEMORY
 {
@@ -109,7 +110,8 @@ MEMORY
   RAM                 (rwx):ORIGIN = 0x20006000, LENGTH = 0x20040000 - 0x20006000
 }
 ```
-Second information source may the Seeed bootloader [Linkerfile of Seeed Bootloader](https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader/blob/master/linker/nrf52840.ld).
+##### Second information source
+May the Seeed bootloader [Linkerfile of Seeed Bootloader](https://github.com/0hotpotman0/Adafruit_nRF52_Bootloader/blob/master/linker/nrf52840.ld).
 ```ld
 MEMORY
 {
@@ -125,6 +127,19 @@ MEMORY
 }
 ```
 
+##### Third information source:
+Downloading the UF2 file of my current Arduino app, reading the content using `uf2info`.  
+Assuming the file does contain, besides the app, also a bootloader and softdevice. However, it ends at 0xEA000. 
+```txt
+$ uf2info CURRENT.UF2
+File CURRENT.UF2
+Input file size 1.82MiB
+Total blocks 3728
+Binary len 932.00KiB
+Memory regions 0x1000-0xEA000
+```
+
+
 #### Memory Map
 `memory.x` file, located in the project root
 ```ld
@@ -137,8 +152,9 @@ MEMORY
    * SoftDevice           ORIGIN = 0x00001000, LENGTH = 0x00027000 - 0x00001000 (156K) == S140 V.7.3.0
    */
 
-   FLASH /*APP*/    (rx): ORIGIN = 0x00027000, LENGTH = 0x000ED000 - 0x00027000 /* 812 KiB == adruino config */
-  /* FLASH APP      (rx): ORIGIN = 0x00027000, LENGTH = 0x000F4000 - 0x00027000 == bootloader config */
+   FLASH /*APP*/    (rx): ORIGIN = 0x00027000, LENGTH = 0x000EA000 - 0x00027000 /* == uf2 readout */
+ /*FLASH APP        (rx): ORIGIN = 0x00027000, LENGTH = 0x000ED000 - 0x00027000 (812 KiB) == adruino config
+   FLASH APP        (rx): ORIGIN = 0x00027000, LENGTH = 0x000F4000 - 0x00027000 == bootloader config */
 
   /*
    * Bootloader + config  ORIGIN = 0x000F4000, LENGTH = 0x000FE000 - 0x000F4000 (38K+2K)
@@ -160,11 +176,10 @@ MEMORY
 ```
 > [!NOTE]
 > I just selected the conservative values. If you want to push the boundaries, you may take a deeper look here.  
-> Flash (App) end is set to 0xED000. There may be some buffer. See the bootloader linker script.  
-> RAM (App) begin is set to 0x20008000. 0x20006000 may also work. See the Arduino linker script.
+> Flash (App) end is set to 0xEA000. There may be some buffer. See Arduino and bootloader linker script.  
+> RAM (App) begin is set to 0x20008000. 0x20006000 may also work. See Arduino linker script.
 
 ##### Source
-* 
 * [LD documentation](https://sourceware.org/binutils/docs-2.21/ld/)
 * [Offcial Documentation of SoftDevice S140](https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r)
 * [Nordic SoftDevice Downlodes includes Release Notes](https://www.nordicsemi.com/Products/Development-software/S140/)
@@ -173,7 +188,6 @@ MEMORY
 * memory.x [example in embassy-rs/embassy](https://github.com/embassy-rs/embassy/blob/main/examples/nrf52840/memory.x)
 * (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mbr_bootloader/bootloader.html)
 * (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html)
-
 
 # Write Your Firmware
 
