@@ -26,24 +26,78 @@ Supported (and installed) Targets can be listed by `rustup target list`. The alt
 The target needs to be noted in the project configuration file `.cargo/config.toml` (see below).
 
 ## Linker
-The default rust linker `lld` does support limited systems. However, ARM-based systems are not supported out of the box.  
-For ARM developement the detailt toolchain is `arm-none-eabi-gcc`. The containing linker ist named `arm-none-eabi-ld`.
+The default Rust linker `lld` does support limited systems. However, ARM-based systems are not supported out of the box.  
+For ARM development, the detail toolchain is `arm-none-eabi-gcc`. The containing linker is named `arm-none-eabi-ld`.
 
 mac: `brew install --cask gcc-arm-embedded`
 
-The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` (see below). As an alternative, it seemed `arm-none-eabi-gcc` could also be specified, and this provides some kind of linker time optimization.
-
-Since we're looking for cross-compiling on a bare metal system, the linker needs detailed specification about adress ranges and data in an memory map (see below).
+The linker `arm-none-eabi-ld` needs to be addressed in the `.cargo/config.toml` (see below).  
+Unclear: As an alternative, it seemed `arm-none-eabi-gcc` could also be specified, and this provides some kind of linker time optimization.
 
 May the [meld linker](https://github.com/rui314/mold) is an alternative.
+
+The linker needs an adress layout to be configured (see below), since we want to cross compile for an bare metal system.
 
 * [arm-gnu-toolchain on developer.arm.com](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
 * [gcc-arm-embedded on formulae.brew.sh](https://formulae.brew.sh/cask/gcc-arm-embedded)
 * [rustc: platform-support/arm-none-eabi](https://doc.rust-lang.org/rustc/platform-support/arm-none-eabi.html#requirements)
 
-## Linker Configuration / Memory Map
+# cargo: create an empty rust project
+
+Either
+```
+cargo new project_name
+cd project_name
+```
+or
+```
+mkdir project_name
+cd project_name
+cargo init
+```
+Options are `--bin` (default) or `--lib`
+
+## Project Configuration
+
+> [!NOTE]
+> There are two important files for project configuration `cargo.toml` and `.cargo/config.toml`, don't mix them up.
+
+Create the project configuration file `.cargo/config.toml` on your own.  
+Define the target and configure the linker and additional linker-flags.
+
+> [!WARNING]
+> Watch out, the cargo system also controls some linker flags. Your configuration may collide with the cargo settings.
+
+### Target configuration
+
+Add your target into the `.cargo/config.toml`
+```toml
+[build]
+target = "thumbv7em-none-eabihf" # Armv7-EM architecture, Bare-Metal, Hard Float
+```
+
+### Linker Configuration / Memory Map
+Some linker-flags are needed to consider the bare matel system.
+* no magic number `--nomagic` [docs](https://sourceware.org/binutils/docs/ld/Options.html#index-_002d_002dnmagic)
+* linker script with memory map `-Tmemory.x` [docs](https://sourceware.org/binutils/docs/ld/Options.html#index-_002dT-script)
+* request a map file for debugging `-Map=output.map` [docs](https://sourceware.org/binutils/docs/ld/Options.html#index-_002dMap_003dmapfile)
+
+Add the linker flags and the memory map to the linker configuration in `.cargo/config.toml`
+```toml
+[target.thumbv7em-none-eabihf]
+linker = "arm-none-eabi-ld" # Linker for ARM
+rustflags = [
+    "-C", "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
+    "-C", "link-arg=--nmagic", # no magic number on bare metal system necessary
+#    "-C", "link-arg=--nostartfiles", # no standard start files on bare metal
+    "-C", "link-arg=-Map=output.map", # map file for debugging (project root)
+#    "-C", "panic=abort", # covered by cargo
+#    "-C", "opt-level=z", # covered by cargo
+]
+```
+
 The memory organization in your specific controller needs to be specified in a memory map for the linker.  
-In case your system is using a bootloader and/or SoftDevice also this needs to be concidered.
+In case your system is using a bootloader and/or SoftDevice, also this needs to be considered.
 
 The linker-script `memory.x` or `link.x` (or a speakting name with `.ld` extension) specifies address regions via MEMORY and program SECTIONS to be placed within regions. Both are optional in theory. However, at least the MEMORY command is important to inform the linker about accessability, size, and address range of Flash and RAM and the existence of Bootloader and/or Softdevice.
 
@@ -71,7 +125,7 @@ MEMORY
 }
 ```
 
-### Memory Map
+#### Memory Map
 `memory.x` file, located in the project root
 ```ld
 MEMORY
@@ -109,7 +163,7 @@ MEMORY
 > Flash (App) end is set to 0xED000. There may be some buffer. See the bootloader linker script.  
 > RAM (App) begin is set to 0x20008000. 0x20006000 may also work. See the Arduino linker script.
 
-### Source
+##### Source
 * 
 * [LD documentation](https://sourceware.org/binutils/docs-2.21/ld/)
 * [Offcial Documentation of SoftDevice S140](https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html#mem_resource_map_usage__fig_tjt_thp_3r)
@@ -120,46 +174,6 @@ MEMORY
 * (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mbr_bootloader/bootloader.html)
 * (https://docs.nordicsemi.com/bundle/sds_s140/page/SDS/s1xx/mem_usage/mem_resource_map_usage.html)
 
-
-# cargo: create an empty rust project
-
-Either
-```
-cargo new project_name
-cd project_name
-```
-or
-```
-mkdir project_name
-cd project_name
-cargo init
-```
-Options are `--bin` (default) or `--lib`
-
-
-## Project Configuration
-
-Create the project configuration file `.cargo/config.toml`.  
-Define the target and configure the linker and additional linker-flags.
-
-> [!WARNING]
-> Watch out, the cargo system also controls some linker flags. Your configuration may collide with the cargo settings.
-
-```toml
-[build]
-target = "thumbv7em-none-eabihf" # Armv7-EM Architektur, Bare-Metal, Hard Float
-
-[target.thumbv7em-none-eabihf]
-linker = "arm-none-eabi-ld" # Linker for ARM
-rustflags = [
-    "-C", "link-arg=-Tmemory.x",  # Linker script (MEMORY and SECTIONS)
-    "-C", "link-arg=--nmagic", # no magic number on bare metal system necessary
-#    "-C", "link-arg=--nostartfiles", # no standard start files on bare metal
-    "-C", "link-arg=-Map=output.map", # map file for debugging (project root)
-#    "-C", "panic=abort", # covered by cargo
-#    "-C", "opt-level=z", # covered by cargo
-]
-```
 
 # Write Your Firmware
 
