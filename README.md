@@ -371,3 +371,16 @@ Traits          serialPorts, usb
 
 # Sources / See also
 * [Wumpf/Seeed-nRF52840-Sense-projects](https://github.com/Wumpf/Seeed-nRF52840-Sense-projects)
+
+# Bootloader Upgrade
+Download the selected Adafruit Bootloader [Release](https://github.com/adafruit/Adafruit_nRF52_Bootloader/releases). The Seeed Xiao nrf52840 is supported.
+
+## Upgrade via UF2 File
+Download bootloader as UF2 release [`update-xiao_nrf52840_ble_bootloader-0.10.0_nosd.uf2`](https://github.com/adafruit/Adafruit_nRF52_Bootloader/releases)  
+Doesn't work for me with the shipped bootloader `0.6.2-12-g459adc9-dirty`, but after upgrading via DFU mode, I was able to up/downgrade via UF2.  
+
+## Programm via DFU mode
+Download bootloader as zip release [`xiao_nrf52840_ble_bootloader-0.10.0_s140_7.3.0.zip`](https://github.com/adafruit/Adafruit_nRF52_Bootloader/releases)  
+Install `adafruit-nrfutil` via `pip3 install --user adafruit-nrfutil`
+May use e.g. `nrfutil device list` to identify the port of the board in bootloader mode (e.g. /dev/tty.usbmodem101)  
+Program the bootloader via DFU mode: `~/Library/Python/3.9/bin/adafruit-nrfutil dfu serial -pkg xiao_nrf52840_ble_bootloader-0.10.0_s140_7.3.0.zip -p /dev/tty.usbmodem101`
